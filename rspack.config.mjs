@@ -1,8 +1,7 @@
 import * as rspack from '@rspack/core'
 
-// 模拟真实插件的用法：在 finishModules 里对入口模块调用 rebuildModule。
-// （glass-easel-miniprogram-webpack-plugin 正是这么做的——它先重写虚拟 index
-// 的内容，再重建该模块让新内容进入本次产物。）
+// 模拟内容重写型插件的用法：在 finishModules 里对入口模块调用 rebuildModule，
+// 让重写后的模块内容进入本次产物（rebuildModule 的官方文档场景）。
 class RebuildEntryInFinishModulesPlugin {
   name = 'RebuildEntryInFinishModulesPlugin'
 

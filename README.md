@@ -1,10 +1,9 @@
 # Rspack development-mode `rebuildModule` panic during watch
 
 Minimal reproduction of a Rust panic in `@rspack/core@2.2.9`: calling
-`compilation.rebuildModule` from the `finishModules` hook — the standard pattern for
-plugins that rewrite module content late in the build (e.g. the glass-easel
-miniprogram webpack plugin) — panics in **development** mode during a watch
-incremental rebuild.
+`compilation.rebuildModule` from the `finishModules` hook — the documented pattern
+for plugins that rewrite module content late in the build — panics in
+**development** mode during a watch incremental rebuild.
 
 Related but not covered by [issue #9058](https://github.com/web-infra-dev/rspack/issues/9058) /
 [issue #9778](https://github.com/web-infra-dev/rspack/issues/9778) and
@@ -64,8 +63,8 @@ from `finishModules` runs concurrently with dev-mode graph bookkeeping:
   ... rayon::iter::... (parallel iteration over module identifiers) ...
   ```
 
-- The same plugin pattern in a larger real build (the glass-easel miniprogram
-  plugin, ~250 modules) panics instead at
+- The same plugin pattern in a larger real build (~250 modules, a content-rewriting
+  plugin of the same shape) panics instead at
   `compilation/build_module_graph/graph_updater/repair/process_dependencies.rs:76`
   — `module_by_identifier(...).expect("Module expected")` in the graph repair
   task, which dereferences a module identifier removed by the concurrent update.
