@@ -52,7 +52,18 @@ from `finishModules` runs concurrently with dev-mode graph bookkeeping:
 - This repro (small graph):
   `module_graph/mod.rs:616` — `dependency_ref_by_id`, reached from
   `FlagDependencyExportsPlugin`'s parallel `finishModules` pass draining
-  dependency IDs that the rebuild has already invalidated.
+  dependency IDs that the rebuild has already invalidated. The relevant
+  backtrace frames (from a source build with `RUST_BACKTRACE=1`):
+
+  ```text
+  <rspack_core::module_graph::ModuleGraph>::dependency_ref_by_id
+          at crates/rspack_core/src/module_graph/mod.rs:616
+  <rspack_core::module_graph::ModuleGraph>::dependency_by_id
+          at crates/rspack_core/src/module_graph/mod.rs:638
+  ... <rspack_plugin_javascript::plugin::flag_dependency_exports_plugin::FlagDependencyExportsState>::apply ...
+  ... rayon::iter::... (parallel iteration over module identifiers) ...
+  ```
+
 - The same plugin pattern in a larger real build (the glass-easel miniprogram
   plugin, ~250 modules) panics instead at
   `compilation/build_module_graph/graph_updater/repair/process_dependencies.rs:76`
@@ -63,14 +74,15 @@ Which assertion fires first depends on the module graph shape; the trigger is th
 same: a `rebuildModule` re-entering graph building from `finishModules` while the
 development-mode dependency/graph state is being drained.
 
-Notably, webpack 5 exhibits the same re-entrancy hazard as a *caught* error:
+For comparison, webpack 5 handles the same re-entrancy as a *caught* error:
 `FlagDependencyExportsPlugin` reports `Invalid value used as weak map key` inside
-`finishModules` during the rebuild, which webpack swallows.
+`finishModules` during the rebuild, which webpack swallows and continues.
 
 ## Environment
 
-- `@rspack/core` / `@rspack/cli` 2.2.9 (also reproduces on a local build of the
-  `fix/rebuild-module-import-module` branch)
+- `@rspack/core` / `@rspack/cli` 2.2.9 (also reproduces on a source build of the
+  [`fix/rebuild-module-import-module`](https://github.com/web-infra-dev/rspack/pull/16242)
+  branch)
 - Node 26, macOS (arm64)
 
 ## Workaround
