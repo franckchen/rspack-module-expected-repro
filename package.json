@@ -1,0 +1,12 @@
+{
+  "name": "rspack-module-expected-repro",
+  "private": true,
+  "scripts": {
+    "watch": "rspack build --config rspack.config.mjs --watch",
+    "watch:production": "rspack build --config rspack.config.mjs --watch --env production"
+  },
+  "devDependencies": {
+    "@rspack/cli": "2.2.9",
+    "@rspack/core": "2.2.9"
+  }
+}
